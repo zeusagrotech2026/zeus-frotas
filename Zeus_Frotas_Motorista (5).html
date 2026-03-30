@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0c11">
+<title>Zeus Frotas · Motorista</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap');
+:root{
+  --bg:#0a0c11;--surf:#121620;--card:#181e2d;--card2:#1f2840;
+  --border:#252f45;--text:#eef2fa;--muted:#6b7fa5;
+  --orange:#f5832a;--orange2:#ffaa60;--green:#2de07d;--red:#f04f4f;--blue:#4a9fff;
+  --font-d:'Syne',sans-serif;--font-b:'Instrument Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);
+  min-height:100svh;display:flex;flex-direction:column}
+
+/* ── TOP BAR ── */
+.topbar{
+  background:var(--surf);border-bottom:1px solid var(--border);
+  padding:16px 20px 14px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.topbar-logo{font-family:var(--font-d);font-size:15px;font-weight:800;
+  background:linear-gradient(90deg,var(--orange),var(--orange2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.topbar-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-badge{background:rgba(245,131,42,.15);border:1px solid rgba(245,131,42,.35);
+  color:var(--orange);padding:4px 10px;border-radius:16px;font-size:11px;font-weight:700}
+
+/* ── SCROLL AREA ── */
+.scroll-area{flex:1;overflow-y:auto;padding:20px 16px 32px;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+
+/* ── STEPS ── */
+.step{display:none;animation:fadeUp .25s ease}
+.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:18px;margin-bottom:14px}
+.card-title{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── VEHICLE SELECT ── */
+.veh-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.veh-btn{
+  background:var(--card2);border:2px solid var(--border);border-radius:14px;
+  padding:16px 18px;cursor:pointer;transition:all .18s;text-align:left;
+  display:flex;align-items:center;gap:14px;
+}
+.veh-btn:active{transform:scale(.98)}
+.veh-btn.selected{border-color:var(--orange);background:rgba(245,131,42,.1)}
+.veh-plate{font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--orange)}
+.veh-name{font-size:13px;color:var(--text);margin-top:2px}
+.veh-km{font-size:11px;color:var(--muted);margin-top:2px}
+.veh-icon{font-size:28px;flex-shrink:0}
+
+/* ── INPUT ── */
+.input-group{margin-bottom:16px}
+.input-group label{display:block;font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.input-group input,.input-group select,.input-group textarea{
+  width:100%;background:var(--card2);border:2px solid var(--border);border-radius:12px;
+  padding:14px 16px;color:var(--text);font-size:15px;font-family:var(--font-b);outline:none;
+  transition:border .15s;-webkit-appearance:none}
+.input-group input:focus,.input-group select:focus,.input-group textarea:focus{border-color:var(--orange)}
+.input-group input[type=number]{font-family:var(--font-d);font-size:22px;font-weight:700;
+  text-align:center;letter-spacing:2px}
+.km-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:6px}
+
+/* ── PHOTO CAPTURE ── */
+.photo-capture{
+  border:2px dashed var(--border);border-radius:16px;padding:28px 20px;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+  background:var(--card2);min-height:160px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;
+}
+.photo-capture:active{transform:scale(.98)}
+.photo-capture.has-photo{border-color:var(--green);background:rgba(45,224,125,.05)}
+.photo-capture input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:100px}
+.photo-capture .cam-icon{font-size:44px}
+.photo-capture .cam-label{font-size:14px;font-weight:600;color:var(--text)}
+.photo-capture .cam-sub{font-size:12px;color:var(--muted)}
+.photo-preview{width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:10px;display:none}
+.photo-check{color:var(--green);font-size:18px;font-weight:700}
+
+/* ── BUTTONS ── */
+.btn-main{
+  width:100%;background:linear-gradient(135deg,var(--orange),var(--orange2));
+  color:white;border:none;border-radius:14px;padding:17px;font-size:16px;
+  font-weight:700;font-family:var(--font-d);cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 8px 24px rgba(245,131,42,.35);
+}
+.btn-main:active{transform:scale(.97);box-shadow:none}
+.btn-main:disabled{opacity:.5;pointer-events:none}
+.btn-secondary{
+  width:100%;background:var(--card2);color:var(--muted);border:1px solid var(--border);
+  border-radius:14px;padding:14px;font-size:14px;font-weight:600;
+  font-family:var(--font-b);cursor:pointer;transition:all .15s;
+}
+.btn-secondary:active{background:var(--card)}
+
+/* ── PROGRESS ── */
+.progress-steps{display:flex;align-items:center;gap:6px;margin-bottom:20px;padding:0 4px}
+.ps{height:4px;border-radius:2px;background:var(--border);flex:1;transition:background .3s}
+.ps.done{background:var(--orange)}
+.ps.active{background:var(--orange2);animation:pulse-prog 1.2s ease-in-out infinite}
+@keyframes pulse-prog{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── SUCCESS ── */
+.success-wrap{text-align:center;padding:32px 16px}
+.success-icon{font-size:72px;animation:pop .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.success-title{font-family:var(--font-d);font-size:26px;font-weight:800;margin:16px 0 8px;
+  background:linear-gradient(90deg,var(--green),var(--teal,#10c6c6));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.summary-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px;margin-bottom:20px;text-align:left}
+.summary-row{display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.summary-row:last-child{border:none}
+.summary-row .lbl{color:var(--muted)}
+.summary-row .val{font-weight:600}
+.summary-row .val.km{font-family:var(--font-d);font-size:18px;color:var(--orange)}
+
+/* ── HISTORY ── */
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px;margin-bottom:10px;display:flex;gap:14px;align-items:center}
+.history-photo{width:58px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.history-info{flex:1;min-width:0}
+.history-plate{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--orange)}
+.history-km{font-size:12px;color:var(--muted);margin-top:2px}
+.history-date{font-size:10px;color:var(--muted);margin-top:3px}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  background:var(--surf);border-top:1px solid var(--border);
+  display:flex;padding:8px 0 max(8px,env(safe-area-inset-bottom));
+  flex-shrink:0;
+}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 4px;cursor:pointer;transition:color .15s;color:var(--muted);
+  font-size:10px;font-weight:600;border:none;background:none}
+.bn-item.active{color:var(--orange)}
+.bn-item .bn-icon{font-size:22px}
+.motorista-input{
+  background:rgba(245,131,42,.08);border:2px solid rgba(245,131,42,.3);
+  border-radius:14px;padding:14px 16px;font-size:14px;font-weight:600;
+  color:var(--orange);text-align:center;
+}
+
+/* ── OFFLINE BANNER ── */
+.offline-banner{
+  background:rgba(240,79,79,.15);border-bottom:1px solid rgba(240,79,79,.3);
+  padding:8px 16px;font-size:12px;color:var(--red);text-align:center;display:none;
+}
+.offline-banner.show{display:block}
+</style>
+</head>
+<body>
+
+<div class="offline-banner" id="offlineBanner">
+  📵 Sem conexão — os registros serão salvos localmente
+</div>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-logo">⚡ Zeus Frotas</div>
+    <div class="topbar-sub" id="topbar-sub-text">Registro de Hodômetro</div>
+  </div>
+  <div class="topbar-badge" id="motoristaBadge">Identificar</div>
+</div>
+
+<div class="scroll-area" id="scrollArea">
+
+  <!-- STEP 0: Identificação -->
+  <div class="step active" id="step-0">
+    <div class="card">
+      <div class="card-title">👋 Olá, motorista!</div>
+      <div class="card-sub">Informe seu nome para registrar o hodômetro do veículo.</div>
+    </div>
+    <div class="input-group">
+      <label>Seu nome completo</label>
+      <input type="text" id="inp-motorista" placeholder="Ex: João Silva" autocomplete="name"
+        style="font-size:18px;text-align:center;padding:18px">
+    </div>
+    <button class="btn-main" onclick="setMotorista()">Continuar →</button>
+
+    <!-- Recent history if exists -->
+    <div id="recent-history" style="margin-top:24px;display:none">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Seus últimos registros</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- STEP 1: Escolher veículo -->
+  <div class="step" id="step-1">
+    <div class="progress-steps">
+      <div class="ps done"></div><div class="ps active"></div>
+      <div class="ps"></div><div class="ps"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚗 Selecione o veículo</div>
+      <div class="card-sub">Qual veículo você vai registrar?</div>
+    </div>
+    <div class="veh-list" id="veh-list"></div>
+    <div style="margin-top:12px">
+      <button class="btn-secondary" onclick="prevStep()">← Voltar</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Hodômetro -->
+  <div class="step" id="step-2">
+    <div class="progress-steps">
+      <div class="ps done"></div><div class="ps done"></div>
+      <div class="ps active"></div><div class="ps"></div>
+    </div>
+    <div class="card" id="selected-veh-card">
+      <div class="card-title" id="sel-veh-nome">Veículo</div>
+      <div class="card-sub" id="sel-veh-info">—</div>
+    </div>
+
+    <div id="last-km-display" style="display:none"></div>
+    <div class="input-group">
+      <label>Leitura do hodômetro (km)</label>
+      <input type="number" id="inp-km" inputmode="numeric" pattern="[0-9]*"
+        placeholder="0" min="0" max="9999999">
+      <div class="km-hint" id="km-hint">Informe o valor exato mostrado no painel</div>
+    </div>
+
+    <div class="input-group">
+      <label>📸 Foto do hodômetro</label>
+      <div class="photo-capture" id="photo-capture-area">
+        <input type="file" accept="image/*" capture="environment"
+          id="foto-input" onchange="handleFoto(this)">
+        <div class="cam-icon" id="cam-icon">📷</div>
+        <div class="cam-label" id="cam-label">Tirar foto</div>
+        <div class="cam-sub" id="cam-sub">Toque para abrir a câmera</div>
+      </div>
+      <img id="foto-preview" class="photo-preview" alt="Hodômetro">
+    </div>
+
+    <div class="input-group">
+      <label>Observações (opcional)</label>
+      <textarea id="inp-obs" placeholder="Ex: Viagem para fazenda, retorno de entrega..."
+        style="border-radius:12px;border:2px solid var(--border);background:var(--card2);
+          padding:14px;font-size:14px;min-height:80px;width:100%;outline:none;
+          font-family:var(--font-b);color:var(--text);transition:border .15s"></textarea>
+    </div>
+
+    <button class="btn-main" id="btn-enviar" onclick="enviarRegistro()">
+      ✅ Enviar Registro
+    </button>
+    <div style="margin-top:10px">
+      <button class="btn-secondary" onclick="prevStep()">← Voltar</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Sucesso -->
+  <div class="step" id="step-3">
+    <div class="success-wrap">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Registrado!</div>
+      <div class="success-sub" id="success-msg">Hodômetro registrado com sucesso.</div>
+    </div>
+    <div class="summary-card" id="summary-card"></div>
+    <button class="btn-main" onclick="novoRegistro()" style="margin-bottom:10px">
+      + Novo Registro
+    </button>
+    <button class="btn-secondary" onclick="showHistory()">Ver meus registros</button>
+  </div>
+
+  <!-- STEP 4: Histórico -->
+  <div class="step" id="step-4">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-family:var(--font-d);font-size:18px;font-weight:700">Meus Registros</div>
+      <button class="btn-secondary" style="width:auto;padding:8px 14px;font-size:12px" onclick="goStep(0)">← Voltar</button>
+    </div>
+    <div id="full-history"></div>
+  </div>
+
+</div><!-- /scroll-area -->
+
+<div class="bottom-nav">
+  <button class="bn-item active" id="bn-registro" onclick="goStep(1)">
+    <span class="bn-icon">📍</span>Registrar
+  </button>
+  <button class="bn-item" id="bn-history" onclick="showHistory()">
+    <span class="bn-icon">📋</span>Histórico
+  </button>
+  <button class="bn-item" id="bn-export" onclick="exportRegistros()">
+    <span class="bn-icon">📤</span>Exportar
+  </button>
+</div>
+
+<script>
+// ── CONFIG — preenchido automaticamente pelo gestor ────────────
+// Quando hospedado no GitHub Pages, o gestor injeta a URL base
+const ZEUS_BASE_URL = window.__ZEUS_BASE_URL__ || '';
+const ZEUS_VEH_PRESET = window.__ZEUS_VEH_PRESET__ || null; // {id,nome,placa}
+
+// ── STATE ──────────────────────────────────────────────
+const MOTO_KEY = 'zeus_motorista';
+const REG_KEY  = 'zeus_registros_motorista';
+let motoristaNome = localStorage.getItem(MOTO_KEY) || '';
+let selectedVeh   = null;
+let fotoData      = '';
+let currentStep   = 0;
+
+// ── Lê parâmetros da URL (hash ou query) ────────────────
+// Suporta: #veh=BASE64  ou  ?veh=BASE64
+// BASE64 = btoa(encodeURI(JSON.stringify({id,nome,placa}))) — link permanente, km buscado do localStorage
+function getUrlVehParam(){
+  try{
+    // 1. Preset injetado pelo gestor ao gerar o HTML personalizado
+    if(window.__ZEUS_VEH_PRESET__){
+      return enrichVehKm(window.__ZEUS_VEH_PRESET__);
+    }
+    // 2. window.__ZEUS_VEICULOS__ (app HTML personalizado baixado)
+    if(window.__ZEUS_VEH_ID__ && window.__ZEUS_VEICULOS__){
+      const v = window.__ZEUS_VEICULOS__.find(x=>x.id===window.__ZEUS_VEH_ID__);
+      if(v) return enrichVehKm(v);
+    }
+    // 3. Query string: ?veh=BASE64  (GitHub Pages link)
+    const qs = window.location.search;
+    let raw = new URLSearchParams(qs).get('veh')||'';
+    // 4. Hash fallback: #veh=BASE64
+    if(!raw){
+      const hash = window.location.hash;
+      if(hash.includes('veh=')) raw = hash.split('veh=')[1].split('&')[0];
+    }
+    if(!raw) return null;
+    // Decodifica base64 → JSON
+    let vehData;
+    try{ vehData = JSON.parse(decodeURIComponent(escape(atob(raw)))); }
+    catch(e){ vehData = JSON.parse(atob(raw)); }
+    return enrichVehKm(vehData);
+  }catch(e){ return null; }
+}
+
+// Busca o último km no localStorage do gestor para manter o link permanente
+function enrichVehKm(veh){
+  if(!veh) return null;
+  try{
+    const db = localStorage.getItem('zeus_frotas_v1');
+    if(db){
+      const d = JSON.parse(db);
+      // Último km do hodômetro
+      const ultimoHod = [...(d.hodometros||[])].filter(h=>h.vehId===veh.id)
+        .sort((a,b)=>b.km-a.km)[0];
+      // Dados atualizados do veículo
+      const vehDB = (d.veiculos||[]).find(v=>v.id===veh.id);
+      const hodAtu = ultimoHod?.km || vehDB?.hodAtu || veh.hodAtu || 0;
+      const motNome = vehDB
+        ? (d.motoristas||[]).find(m=>m.id===vehDB.motoristaId)?.nome || vehDB.motorista || ''
+        : veh.motoristaNome||'';
+      return { ...veh, hodAtu, motoristaNome: motNome,
+               nome: vehDB?.nome||veh.nome, placa: vehDB?.placa||veh.placa };
+    }
+  }catch(e){}
+  return veh; // fallback: usa dados do link (podem estar desatualizados)
+}
+
+// ── Carrega lista de veículos ────────────────────────────
+// Prioridade: 1) __ZEUS_VEICULOS__ (injetado), 2) localStorage do gestor, 3) URL hash
+function getVeiculos(){
+  // 1. Dados injetados pelo gestor ao baixar o app personalizado
+  if(window.__ZEUS_VEICULOS__ && window.__ZEUS_VEICULOS__.length){
+    return window.__ZEUS_VEICULOS__;
+  }
+  // 2. localStorage do gestor (mesmo browser/dispositivo)
+  try{
+    const db=localStorage.getItem('zeus_frotas_v1');
+    if(db){
+      const d=JSON.parse(db);
+      if(d.veiculos?.length){
+        // Enriquecer com último km dos hodômetros
+        return d.veiculos.map(v=>{
+          const ultimoKm=[...( d.hodometros||[])].filter(h=>h.vehId===v.id).sort((a,b)=>b.km-a.km)[0]?.km||(v.hodIni||0);
+          return{...v, hodAtu:ultimoKm};
+        });
+      }
+    }
+  }catch(e){}
+  // 3. Veículo único do link (URL hash)
+  const urlVeh=getUrlVehParam();
+  if(urlVeh) return [urlVeh]; // já enriquecido com km atual
+  // 4. Demo
+  return[
+    {id:'demo1',nome:'Hilux SRV 2023',placa:'ABC-1234',hodAtu:45320},
+    {id:'demo2',nome:'S10 LTZ 2022',placa:'DEF-5678',hodAtu:78900},
+    {id:'demo3',nome:'Amarok V6 2021',placa:'GHI-9012',hodAtu:112450},
+  ];
+}
+
+function getRegistros(){
+  try{const s=localStorage.getItem(REG_KEY);if(s)return JSON.parse(s);}catch(e){}return[];
+}
+function saveRegistro(r){
+  const list=getRegistros();list.unshift(r);
+  localStorage.setItem(REG_KEY,JSON.stringify(list.slice(0,100)));
+  // Also push to manager DB if available
+  pushToManagerDB(r);
+}
+function pushToManagerDB(r){
+  try{
+    const s=localStorage.getItem('zeus_frotas_v1');if(!s)return;
+    const db=JSON.parse(s);
+    db.hodometros=db.hodometros||[];
+    // avoid duplicate
+    if(db.hodometros.find(h=>h.id===r.id))return;
+    db.hodometros.unshift(r);
+    // update vehicle hodAtu
+    const v=db.veiculos?.find(v=>v.id===r.vehId);
+    if(v)v.hodAtu=Math.max(v.hodAtu||0,r.km);
+    localStorage.setItem('zeus_frotas_v1',JSON.stringify(db));
+  }catch(e){}
+}
+
+// ── NAVIGATION ─────────────────────────────────────────
+function goStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step-'+n)?.classList.add('active');
+  document.getElementById('scrollArea').scrollTop=0;
+  currentStep=n;
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  if(n===4)document.getElementById('bn-history')?.classList.add('active');
+  else document.getElementById('bn-registro')?.classList.add('active');
+}
+function prevStep(){goStep(Math.max(0,currentStep-1));}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const fmtDT=d=>new Date(d).toLocaleString('pt-BR');
+
+// ── MOTORISTA ───────────────────────────────────────────
+function setMotorista(){
+  const nome=document.getElementById('inp-motorista').value.trim();
+  if(!nome){document.getElementById('inp-motorista').focus();return;}
+  motoristaNome=nome;
+  localStorage.setItem(MOTO_KEY,nome);
+  document.getElementById('motoristaBadge').textContent=nome.split(' ')[0];
+  renderVehList();
+  // Se só tem 1 veículo (link personalizado), pular seleção
+  const vehs=getVeiculos();
+  if(vehs.length===1){
+    selectVeh(vehs[0].id, true);
+  } else {
+    goStep(1);
+  }
+}
+
+function initMotorista(){
+  const urlVeh = getUrlVehParam();
+
+  // Se veio com veículo pré-definido pela URL
+  if(urlVeh){
+    // Atualizar badge e título com nome do veículo
+    const badge = document.getElementById('motoristaBadge');
+    if(badge) badge.textContent = urlVeh.placa;
+    // Atualizar subtítulo do topbar
+    const sub = document.querySelector('.topbar-sub');
+    if(sub) sub.textContent = urlVeh.nome + ' · ' + urlVeh.placa;
+    // Pré-preencher motorista se vier na URL
+    // Pré-preenche motorista se vier no localStorage (mesmo browser)
+    if(urlVeh.motoristaNome && !motoristaNome){
+      motoristaNome = urlVeh.motoristaNome;
+      localStorage.setItem(MOTO_KEY, motoristaNome);
+      const inp = document.getElementById('inp-motorista');
+      if(inp) inp.value = motoristaNome;
+      if(badge) badge.textContent = motoristaNome.split(' ')[0];
+    }
+    // Se já tem nome, pular step 0 e ir direto para step 2 (hodômetro)
+    if(motoristaNome){
+      renderVehList();
+      selectVeh(urlVeh.id, true); // true = skip step transition
+      return;
+    }
+  }
+
+  if(motoristaNome){
+    document.getElementById('inp-motorista').value=motoristaNome;
+    document.getElementById('motoristaBadge').textContent=motoristaNome.split(' ')[0];
+    loadRecentHistory();
+    // Se só tem um veículo (link personalizado), pular seleção
+    const vehs = getVeiculos();
+    if(vehs.length===1){
+      renderVehList();
+      selectVeh(vehs[0].id, true);
+      return;
+    }
+  }
+}
+
+function loadRecentHistory(){
+  const regs=getRegistros().filter(r=>r.motorista===motoristaNome).slice(0,3);
+  const wrap=document.getElementById('recent-history');
+  if(!regs.length||!wrap)return;
+  wrap.style.display='block';
+  document.getElementById('history-list').innerHTML=regs.map(r=>`
+    <div class="history-item">
+      ${r.foto?`<img src="${r.foto}" class="history-photo" alt="hodômetro">`:`<div class="history-photo" style="background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border);border-radius:8px">🚗</div>`}
+      <div class="history-info">
+        <div class="history-plate">${r.placa}</div>
+        <div class="history-km">📍 ${r.km?.toLocaleString('pt-BR')} km${r.diff>0?' (+'+r.diff.toLocaleString('pt-BR')+'km)':''}</div>
+        <div class="history-date">${fmtDT(r.data)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── VEHICLES ────────────────────────────────────────────
+function renderVehList(){
+  const vehs=getVeiculos();
+  const el=document.getElementById('veh-list');
+  if(!el)return;
+  if(!vehs.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:24px;font-size:14px">Nenhum veículo disponível.<br>Aguarde o gestor cadastrar os veículos.</div>`;return;}
+  el.innerHTML=vehs.map(v=>`
+    <div class="veh-btn" id="vb-${v.id}" onclick="selectVeh('${v.id}')">
+      <div class="veh-icon">🚗</div>
+      <div>
+        <div class="veh-plate">${v.placa}</div>
+        <div class="veh-name">${v.nome}</div>
+        <div class="veh-km">Último km: ${(v.hodAtu||0).toLocaleString('pt-BR')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function selectVeh(id, skipAnim){
+  document.querySelectorAll('.veh-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('vb-'+id)?.classList.add('selected');
+  selectedVeh=getVeiculos().find(v=>v.id===id);
+  if(selectedVeh){
+    const ultimoKm = selectedVeh.hodAtu||0;
+    document.getElementById('sel-veh-nome').textContent=selectedVeh.nome;
+    document.getElementById('sel-veh-info').textContent=`Placa: ${selectedVeh.placa}`;
+    document.getElementById('km-hint').textContent=`Último registro: ${ultimoKm.toLocaleString('pt-BR')} km`;
+    document.getElementById('inp-km').min=ultimoKm;
+    document.getElementById('inp-km').placeholder=(ultimoKm+1).toString();
+    // Mostrar bloco de último km destacado
+    const lastKmEl = document.getElementById('last-km-display');
+    if(lastKmEl){
+      lastKmEl.style.display='block';
+      lastKmEl.innerHTML=`
+        <div style="background:rgba(245,131,42,.1);border:1px solid rgba(245,131,42,.3);
+          border-radius:12px;padding:14px 16px;text-align:center;margin-bottom:14px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+            Último hodômetro registrado
+          </div>
+          <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:var(--orange)">
+            ${ultimoKm.toLocaleString('pt-BR')} km
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">
+            Novo valor deve ser maior que este
+          </div>
+        </div>`;
+    }
+    if(skipAnim){ goStep(2); return; }
+    setTimeout(()=>goStep(2),180);
+  }
+}
+
+// ── FOTO ────────────────────────────────────────────────
+function handleFoto(input){
+  const file=input.files[0];if(!file)return;
+  // Compress
+  const img=new Image();
+  const reader=new FileReader();
+  reader.onload=e=>{
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=1024;
+      let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      fotoData=canvas.toDataURL('image/jpeg',.82);
+      // Show preview
+      const prev=document.getElementById('foto-preview');
+      prev.src=fotoData;prev.style.display='block';
+      document.getElementById('cam-icon').textContent='✅';
+      document.getElementById('cam-label').textContent='Foto capturada!';
+      document.getElementById('cam-sub').textContent='Toque para trocar';
+      document.getElementById('photo-capture-area').classList.add('has-photo');
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── ENVIAR ──────────────────────────────────────────────
+function enviarRegistro(){
+  if(!selectedVeh){alert('Selecione um veículo');goStep(1);return;}
+  const km=parseInt(document.getElementById('inp-km').value);
+  if(!km||km<1){alert('Informe o hodômetro corretamente');document.getElementById('inp-km').focus();return;}
+  const minKm=selectedVeh.hodAtu||0;
+  if(km<minKm){if(!confirm(`O valor ${km.toLocaleString('pt-BR')} km é menor que o último registro (${minKm.toLocaleString('pt-BR')} km). Confirmar mesmo assim?`))return;}
+  if(!fotoData){if(!confirm('Você não adicionou foto do hodômetro. Registrar sem foto?'))return;}
+
+  const btn=document.getElementById('btn-enviar');
+  btn.disabled=true;btn.textContent='Enviando...';
+
+  const diff=Math.max(0,km-minKm);
+  const reg={
+    id:uid(),vehId:selectedVeh.id,vehNome:selectedVeh.nome,placa:selectedVeh.placa,
+    motorista:motoristaNome,km,diff,
+    foto:fotoData,obs:document.getElementById('inp-obs').value,
+    data:new Date().toISOString(),status:'Validado',criadoEm:new Date().toISOString()
+  };
+  saveRegistro(reg);
+
+  // Show success
+  document.getElementById('success-msg').textContent=
+    `${selectedVeh.nome} (${selectedVeh.placa}) registrado com sucesso!`;
+  document.getElementById('summary-card').innerHTML=`
+    <div class="summary-row"><span class="lbl">Veículo</span><span class="val">${selectedVeh.nome}</span></div>
+    <div class="summary-row"><span class="lbl">Placa</span><span class="val" style="color:var(--orange);font-family:var(--font-d)">${selectedVeh.placa}</span></div>
+    <div class="summary-row"><span class="lbl">Motorista</span><span class="val">${motoristaNome}</span></div>
+    <div class="summary-row"><span class="lbl">Hodômetro</span><span class="val km">${km.toLocaleString('pt-BR')} km</span></div>
+    <div class="summary-row"><span class="lbl">Km rodados</span><span class="val" style="color:var(--green)">${diff>0?'+'+diff.toLocaleString('pt-BR')+' km':'—'}</span></div>
+    <div class="summary-row"><span class="lbl">Data/Hora</span><span class="val" style="font-size:12px">${fmtDT(reg.data)}</span></div>
+    ${fotoData?`<div style="margin-top:12px"><img src="${fotoData}" style="width:100%;border-radius:10px;object-fit:cover;max-height:160px"></div>`:''}`;
+
+  btn.disabled=false;
+  btn.textContent='✅ Enviar Registro';
+  goStep(3);
+
+  // Reset form
+  fotoData='';selectedVeh=null;
+  document.getElementById('inp-km').value='';
+  document.getElementById('inp-obs').value='';
+  document.getElementById('foto-preview').style.display='none';
+  document.getElementById('cam-icon').textContent='📷';
+  document.getElementById('cam-label').textContent='Tirar foto';
+  document.getElementById('cam-sub').textContent='Toque para abrir a câmera';
+  document.getElementById('photo-capture-area').classList.remove('has-photo');
+  document.getElementById('foto-input').value='';
+}
+
+// ── HISTORY ─────────────────────────────────────────────
+function showHistory(){
+  const regs=getRegistros();
+  const el=document.getElementById('full-history');
+  if(!regs.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:40px;font-size:14px">Nenhum registro ainda.</div>`;goStep(4);return;}
+  el.innerHTML=regs.map(r=>`
+    <div class="history-item">
+      ${r.foto?`<img src="${r.foto}" class="history-photo" alt="hodômetro" onclick="showFullFoto('${r.id}')" style="cursor:pointer">`:`<div class="history-photo" style="background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border);border-radius:8px">🚗</div>`}
+      <div class="history-info">
+        <div class="history-plate">${r.placa} <span style="font-size:11px;color:var(--muted);font-weight:400">· ${r.vehNome}</span></div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:2px">📍 ${r.km?.toLocaleString('pt-BR')} km</div>
+        <div class="history-km">${r.motorista||'—'}${r.diff>0?' · +'+r.diff.toLocaleString('pt-BR')+'km':''}</div>
+        <div class="history-date">${fmtDT(r.data)}</div>
+        ${r.obs?`<div style="font-size:11px;color:var(--muted);margin-top:3px;font-style:italic">${r.obs}</div>`:''}
+      </div>
+    </div>`).join('');
+  goStep(4);
+}
+
+function showFullFoto(id){
+  const r=getRegistros().find(x=>x.id===id);if(!r?.foto)return;
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px';
+  overlay.innerHTML=`<img src="${r.foto}" style="max-width:100%;max-height:90vh;border-radius:12px;object-fit:contain">`;
+  overlay.onclick=()=>overlay.remove();
+  document.body.appendChild(overlay);
+}
+
+function novoRegistro(){
+  renderVehList();
+  goStep(1);
+}
+
+// ── EXPORT ──────────────────────────────────────────────
+function exportRegistros(){
+  const regs=getRegistros();
+  if(!regs.length){alert('Nenhum registro para exportar');return;}
+  const rows=[['Data','Veículo','Placa','Motorista','Hodômetro','Km+','Observações']];
+  regs.forEach(r=>rows.push([
+    new Date(r.data).toLocaleString('pt-BR'),r.vehNome,r.placa,r.motorista,r.km,r.diff||0,r.obs||''
+  ]));
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`hodometros_${motoristaNome.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ── OFFLINE ─────────────────────────────────────────────
+window.addEventListener('online', ()=>document.getElementById('offlineBanner').classList.remove('show'));
+window.addEventListener('offline',()=>document.getElementById('offlineBanner').classList.add('show'));
+if(!navigator.onLine)document.getElementById('offlineBanner').classList.add('show');
+
+// ── INIT ────────────────────────────────────────────────
+initMotorista();
+</script>
+</body>
+</html>
